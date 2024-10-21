@@ -1,6 +1,6 @@
 # Scaling Continuous Latent Variable Models as Probabilistic Integral Circuits
 
-This repository is the official implementation of [Probabilistic Integral Circuits](https://proceedings.mlr.press/v238/gala24a.html).
+This repository contains the code for reproducing the experiments of the paper [Scaling Continuous Latent Variable Models as Probabilistic Integral Circuits](https://openreview.net/forum?id=Ke40kfOT2E), which has been accepted at NeurIPS 2024 as spotlight.
 
     @inproceedings{
         gala2024scaling,
