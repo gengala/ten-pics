@@ -1,5 +1,3 @@
-# tenpic
-
 # Scaling Continuous Latent Variable Models as Probabilistic Integral Circuits
 
 This repository is the official implementation of [Probabilistic Integral Circuits](https://proceedings.mlr.press/v238/gala24a.html).
