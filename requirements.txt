@@ -2,3 +2,4 @@ typing-extensions
 torch
 torchvision
 scikit-learn
+python-git
