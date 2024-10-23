@@ -4,6 +4,7 @@ import functools
 import numpy as np
 import argparse
 import torch
+import git
 import os
 
 print = functools.partial(print, flush=True)
@@ -55,6 +56,7 @@ args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
 print('\n\n\n')
+args.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 args.time_stamp = time_stamp = get_date_time_str()
 for key, value in vars(args).items():
     print(f"{key}: {value}")
@@ -107,12 +109,11 @@ pc = TensorizedPC.from_region_graph(
 if args.freeze_mixing_layers:
     freeze_mixing_layers(pc)
 if args.shared_input_layer:
-    param_to_buffer(pc.input_layer)
     input_layer = torch.nn.Parameter(pc.input_layer.params.param[:1])
-    pc.input_layer.params.param = input_layer.expand(pc.num_vars, -1, -1, -1)
+    param_to_buffer(pc.input_layer)
 else:
     input_layer = None
-pc = pc.to(device)
+
 
 print(pc)
 print(f"Num params PC: {count_pc_params(pc)}")
@@ -129,6 +130,7 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=
 
 training_pc(
     pc=pc,
+    input_layer=input_layer,
     optimizer=optimizer,
     scheduler=scheduler,
     loss_reduction=args.loss_reduction,

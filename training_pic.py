@@ -4,6 +4,7 @@ import numpy as np
 import functools
 import argparse
 import torch
+import git
 import os
 
 print = functools.partial(print, flush=True)
@@ -63,6 +64,7 @@ args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
 print('\n\n\n')
+args.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 args.time_stamp = time_stamp = get_date_time_str()
 for key, value in vars(args).items():
     print(f"{key}: {value}")

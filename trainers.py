@@ -122,6 +122,7 @@ def training_pic(
 
 def training_pc(
     pc,
+    input_layer,
     optimizer,
     scheduler,
     loss_reduction: str,
@@ -158,6 +159,8 @@ def training_pc(
             batch = batch.to(device)
             tik_batch = time.time()
             train_step += 1
+            if input_layer is not None:
+                pc.input_layer.params.param = input_layer.expand(pc.num_vars, -1, -1, -1)
             ll = (pc(batch) - pc_pf(None)).mean() if loss_reduction == 'mean' else (pc(batch) - pc_pf(None)).sum()
             if np.isnan(ll.item()):
                 print(f"-> damn, NaN! lr: {optimizer.param_groups[0]['lr']:.5f}")
