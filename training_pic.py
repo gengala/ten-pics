@@ -13,7 +13,6 @@ from trainers import training_pic, test_pc
 from pic import PIC, zw_quadrature, pc2integral_group_args
 from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, count_pc_params, param_to_buffer, freeze_mixing_layers
 from data import datasets
-from tensorized_circuit import TensorizedPC
 
 
 from tenpcs.models.functional import integrate
@@ -22,6 +21,8 @@ from tenpcs.layers.input.exp_family.binomial import BinomialLayer
 from tenpcs.layers.input.exp_family.normal import NormalLayer
 from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
+# from tensorized_circuit import TensorizedPC
+from tenpcs.models import TensorizedPC
 
 
 parser = argparse.ArgumentParser()
