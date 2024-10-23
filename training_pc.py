@@ -13,14 +13,14 @@ print = functools.partial(print, flush=True)
 from trainers import training_pc, test_pc
 from utils import init_random_seeds, get_date_time_str, param_to_buffer, count_pc_params, count_trainable_parameters, freeze_mixing_layers
 from data import datasets
-from tensorized_circuit import TensorizedPC
 
 
-# cirkit
 from tenpcs.layers.input.exp_family.categorical import CategoricalLayer
 from tenpcs.layers.input.exp_family.normal import NormalLayer
 from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
+# from tensorized_circuit import TensorizedPC
+from tenpcs.models import TensorizedPC
 
 
 parser = argparse.ArgumentParser()
