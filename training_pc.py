@@ -113,6 +113,7 @@ if args.shared_input_layer:
     param_to_buffer(pc.input_layer)
 else:
     input_layer = None
+pc = pc.to(device)
 
 
 print(pc)
