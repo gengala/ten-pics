@@ -1,0 +1,4 @@
+typing-extensions
+torch
+torchvision
+scikit-learn
