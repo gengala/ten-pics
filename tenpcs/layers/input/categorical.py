@@ -92,7 +92,13 @@ class CategoricalLayer(InputLayer):
         Returns:
             Tensor: The output of this layer, shape (*B, D, K, P).
         """
-        log_probs = self.params().expand(self.num_vars, -1, -1, -1)
+        if self.full_sharing:  # todo
+            param = torch.unflatten(
+                self.params.param[:1].expand(self.num_vars, -1, -1, -1), dim=-1, sizes=(-1, self.num_categories)
+            )  # shape (..., C, cat)
+            log_probs = torch.log_softmax(param, dim=-1).flatten(start_dim=-2)  # shape (..., C*cat)
+        else:
+            log_probs = self.params().expand(self.num_vars, -1, -1, -1)
 
         index = x if x.dtype == torch.long else x.long()
         if self.num_channels == 1:
