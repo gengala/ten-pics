@@ -107,7 +107,6 @@ pc = TensorizedPC.from_region_graph(
 ).to(device)
 if args.freeze_mixing_layers:
     freeze_mixing_layers(pc)
-input()
 
 
 print(pc)
