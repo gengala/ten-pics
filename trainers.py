@@ -175,7 +175,7 @@ def training_pc(
             for layer in pc.inner_layers:
                 if isinstance(layer, CollapsedCPLayer):
                     layer.params_in().data.clamp_(min=sqrt_eps)
-                else:  # SumLayer, CPLayer, CPTransposeLayer
+                else:  # SumLayer, TuckerLayer
                     layer.params().data.clamp_(min=sqrt_eps)
 
             if train_step % valid_freq == 0:
