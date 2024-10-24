@@ -50,6 +50,8 @@ parser.add_argument('-no-fml',     dest='freeze_mixing_layers',   action='store_
 parser.set_defaults(shared_input_layer=False)
 parser.add_argument('-sil',        dest='shared_input_layer',   action='store_true',        help='multi_head')
 parser.add_argument('-no-sil',     dest='shared_input_layer',   action='store_false',       help='multi_head')
+parser.set_defaults(delete_model=False)
+parser.add_argument('-dm', dest='delete_model', action='store_true', help='delete model after testing')
 args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
@@ -161,3 +163,6 @@ writer.add_hparams(
     },
 )
 writer.close()
+
+if args.delete_model:
+    os.remove(model_dir)

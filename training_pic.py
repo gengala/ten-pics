@@ -57,6 +57,8 @@ parser.add_argument('-no-ff',      dest='learn_ff',            action='store_fal
 parser.set_defaults(bias=True)
 parser.add_argument('-bias',       dest='bias',                action='store_true')
 parser.add_argument('-no-bias',    dest='bias',                action='store_false')
+parser.set_defaults(delete_model=False)
+parser.add_argument('-dm', dest='delete_model', action='store_true', help='delete model after testing')
 args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
@@ -189,3 +191,6 @@ writer.add_hparams(
     },
 )
 writer.close()
+
+if args.delete_model:
+    os.remove(model_dir)
