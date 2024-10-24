@@ -76,6 +76,7 @@ print('train-valid-test lengths:', len(train), len(valid), len(test))
 train_loader = DataLoader(train, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, drop_last=True)
 valid_loader = DataLoader(valid, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 test_loader = DataLoader(test, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+if args.delete_model: train_loader = valid_loader  # todo delete, also in training_pic
 
 model_dir = os.path.join(args.out_dir, "models", dataset_str, f"{args.rg}_{args.inner_layer}_{args.k}", time_stamp + ".pt")
 log_dir = os.path.join(args.out_dir, "logs", dataset_str, f"{args.rg}_{args.inner_layer}_{args.k}", time_stamp)
