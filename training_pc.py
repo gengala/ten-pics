@@ -109,7 +109,7 @@ pc = TensorizedPC.from_region_graph(
 if args.freeze_mixing_layers:
     freeze_mixing_layers(pc)
 if args.shared_input_layer:
-    input_layer = torch.nn.Parameter(pc.input_layer.params.param[:1])
+    input_layer = torch.nn.Parameter(pc.input_layer.params.param[:1].to(device))
     param_to_buffer(pc.input_layer)
 else:
     input_layer = None
