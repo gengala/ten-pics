@@ -11,7 +11,7 @@ print = functools.partial(print, flush=True)
 
 
 from trainers import training_pc, test_pc
-from utils import init_random_seeds, get_date_time_str, count_pc_params, count_trainable_parameters, freeze_mixing_layers
+from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, freeze_mixing_layers
 from data import datasets
 
 
@@ -108,10 +108,8 @@ pc = TensorizedPC.from_region_graph(
 if args.freeze_mixing_layers:
     freeze_mixing_layers(pc)
 
-
 print(pc)
-# print(f"Num params PC: {count_pc_params(pc)}")  # todo
-print(f"Num trainable params: {count_trainable_parameters(pc)}")
+print(f"PC num trainable params: {count_trainable_parameters(pc)}")
 
 ###############################################################################
 ################################ training loop ################################

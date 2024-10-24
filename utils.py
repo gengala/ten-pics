@@ -56,16 +56,6 @@ def perplexity2ll(perplexity: float, num_variables: int) -> float:
     return - num_variables * np.log(perplexity)
 
 
-def count_pc_params(pc: TensorizedPC) -> int:
-    num_param = pc.input_layer.params.param.numel()
-    for layer in pc.inner_layers:
-        if isinstance(layer, CollapsedCPLayer):
-            num_param += layer.params_in.param.numel()
-        else:
-            num_param += layer.params.param.numel()
-    return num_param
-
-
 def get_pc_device(pc: TensorizedPC) -> torch.DeviceObjType:
     return pc.input_layer.params.param.device
 
