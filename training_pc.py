@@ -21,6 +21,7 @@ from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
 # from tensorized_circuit import TensorizedPC
 from tenpcs.models import TensorizedPC
+from tensor_ring import TRLayer  # todo
 
 
 parser = argparse.ArgumentParser()
@@ -63,7 +64,7 @@ for key, value in vars(args).items():
 print('\n')
 
 dataset_str = args.dataset + ('' if args.split is None else ('_' + args.split))
-INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer}
+INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer, "tr": TRLayer}  # todo
 INPUT_LAYERS = {"cat": CategoricalLayer, "normal": NormalLayer}
 device = f"cuda:{args.gpu}" if torch.cuda.is_available() and args.gpu is not None else "cpu"
 
@@ -117,7 +118,7 @@ pc = pc.to(device)
 
 
 print(pc)
-print(f"Num params PC: {count_pc_params(pc)}")
+# print(f"Num params PC: {count_pc_params(pc)}")  # todo
 print(f"Num trainable params: {count_trainable_parameters(pc) + (0 if input_layer is None else input_layer.nelement())}")
 
 ###############################################################################
