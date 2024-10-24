@@ -11,7 +11,7 @@ print = functools.partial(print, flush=True)
 
 from trainers import training_pic, test_pc
 from pic import PIC, zw_quadrature, pc2integral_group_args
-from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, count_pc_params, param_to_buffer, freeze_mixing_layers
+from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, param_to_buffer, freeze_mixing_layers
 from data import datasets
 
 
@@ -102,6 +102,8 @@ else:
 
 num_categories = 256
 num_channels = train[0].size(-1)
+if args.input_sharing == "f":
+    CategoricalLayer.full_sharing = True
 qpc = TensorizedPC.from_region_graph(
     rg=rg,
     layer_cls=INNER_LAYERS[args.inner_layer],
@@ -111,8 +113,9 @@ qpc = TensorizedPC.from_region_graph(
     num_input_units=args.k,
     num_channels=train[0].size(-1),
 )
-param_to_buffer(qpc)
 freeze_mixing_layers(qpc)
+num_qpc_params = count_trainable_parameters(qpc)  # this must be here, because params are going to buffer next
+param_to_buffer(qpc)
 
 pic = PIC(
     integral_group_args=pc2integral_group_args(qpc),
@@ -129,7 +132,7 @@ pic = PIC(
 ).to(device)
 print(pic)
 
-print(f"QPC num of params: {count_pc_params(qpc)}")
+print(f"QPC num of params: {num_qpc_params}")
 print(f"PIC num of params: {count_trainable_parameters(pic)}")
 
 ###############################################################################

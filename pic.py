@@ -119,8 +119,8 @@ class InputNet(nn.Module):
         self.net[1].groups = 1
         self.net[-1].groups = self.num_channels * (1 if self.sharing in ['f', 'c'] else self.num_vars)
         input_param = torch.cat([self.net(chunk.unsqueeze(1)) for chunk in z_quad.chunk(n_chunks, dim=0)], dim=1)
-        if self.sharing == 'f': input_param = input_param.unsqueeze(0).expand(self.num_vars, -1, -1)
-        return input_param.view(self.num_vars, self.num_param * self.num_channels, len(z_quad)).transpose(1, 2)
+        if self.sharing == 'f': input_param = input_param.unsqueeze(0)
+        return input_param.view(-1, self.num_param * self.num_channels, len(z_quad)).transpose(1, 2)
 
 
 @dataclass
@@ -250,7 +250,7 @@ class PIC(nn.Module):
         for layer, inner_param_chunk, in zip(layers, inner_param):
             layer_param = layer.params_in if isinstance(layer, CollapsedCPLayer) else layer.params
             layer_param.param = inner_param_chunk.view_as(layer_param.param)
-        qpc.input_layer.params.param = input_param.unsqueeze(2).expand(-1, -1, qpc.input_layer.params.param.size(2), -1)
+        qpc.input_layer.params.param = input_param.unsqueeze(2)
 
 
 def pc2integral_group_args(pc):
