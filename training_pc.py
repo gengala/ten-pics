@@ -11,15 +11,13 @@ print = functools.partial(print, flush=True)
 
 
 from trainers import training_pc, test_pc
-from utils import init_random_seeds, get_date_time_str, param_to_buffer, count_pc_params, count_trainable_parameters, freeze_mixing_layers
+from utils import init_random_seeds, get_date_time_str, count_pc_params, count_trainable_parameters, freeze_mixing_layers
 from data import datasets
 
 
-from tenpcs.layers.input.exp_family.categorical import CategoricalLayer
-from tenpcs.layers.input.exp_family.normal import NormalLayer
+from tenpcs.layers.input.categorical import CategoricalLayer
 from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
-# from tensorized_circuit import TensorizedPC
 from tenpcs.models import TensorizedPC
 from tensor_ring import TRLayer  # todo
 
@@ -45,7 +43,6 @@ parser.add_argument("--min-delta",          type=float, default=0,          help
 parser.add_argument("--k",                  type=int,   default=128,        help="num categories for mixtures")
 parser.add_argument("--rg",                 type=str,   default="QT",       help="region graph: 'PD', 'QG', 'QT'")
 parser.add_argument("--inner-layer",        type=str,   default="cp",       help="inner layer type: 'tucker' or 'cp'")
-parser.add_argument("--input-layer",        type=str,   default="cat",      help="input type: either 'cat' or 'bin'")
 parser.add_argument("--ycc",                type=str,   default="none",     help="either 'none', 'lossless', 'lossy'")
 parser.set_defaults(freeze_mixing_layers=True)
 parser.add_argument('-fml',        dest='freeze_mixing_layers',   action='store_true')
@@ -65,7 +62,6 @@ print('\n')
 
 dataset_str = args.dataset + ('' if args.split is None else ('_' + args.split))
 INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer, "tr": TRLayer}  # todo
-INPUT_LAYERS = {"cat": CategoricalLayer, "normal": NormalLayer}
 device = f"cuda:{args.gpu}" if torch.cuda.is_available() and args.gpu is not None else "cpu"
 
 ##########################################################################
@@ -98,41 +94,37 @@ else:
     raise NotImplementedError("region graph not available")
 
 
+if args.shared_input_layer:
+    CategoricalLayer.full_sharing = True
 pc = TensorizedPC.from_region_graph(
     rg=rg,
     layer_cls=INNER_LAYERS[args.inner_layer],
-    efamily_cls=INPUT_LAYERS[args.input_layer],
+    efamily_cls=CategoricalLayer,
     efamily_kwargs={'num_categories': 256},
     num_inner_units=args.k,
     num_input_units=args.k,
     num_channels=train[0].size(-1)
-)
+).to(device)
 if args.freeze_mixing_layers:
     freeze_mixing_layers(pc)
-if args.shared_input_layer:
-    input_layer = torch.nn.Parameter(pc.input_layer.params.param[:1].to(device))
-    param_to_buffer(pc.input_layer)
-else:
-    input_layer = None
-pc = pc.to(device)
+input()
 
 
 print(pc)
 # print(f"Num params PC: {count_pc_params(pc)}")  # todo
-print(f"Num trainable params: {count_trainable_parameters(pc) + (0 if input_layer is None else input_layer.nelement())}")
+print(f"Num trainable params: {count_trainable_parameters(pc)}")
 
 ###############################################################################
 ################################ training loop ################################
 ###############################################################################
 
 optimizer = torch.optim.Adam([
-    {'params': input_layer if args.shared_input_layer else pc.input_layer.parameters()},
+    {'params': pc.input_layer.parameters()},
     {'params': pc.inner_layers.parameters(), 'weight_decay': args.weight_decay}], lr=args.lr)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=args.t0, T_mult=1, eta_min=args.eta_min)
 
 training_pc(
     pc=pc,
-    input_layer=input_layer,
     optimizer=optimizer,
     scheduler=scheduler,
     loss_reduction=args.loss_reduction,
@@ -168,8 +160,7 @@ writer.add_hparams(
     },
     hparam_domain_discrete={
         'rg':               ['QG', 'QT'],
-        'inner_layer':      list(INNER_LAYERS.keys()),
-        'input_layer':      list(INPUT_LAYERS.keys())
+        'inner_layer':      list(INNER_LAYERS.keys())
     },
 )
 writer.close()

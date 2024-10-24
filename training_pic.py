@@ -16,12 +16,9 @@ from data import datasets
 
 
 from tenpcs.models.functional import integrate
-from tenpcs.layers.input.exp_family.categorical import CategoricalLayer
-from tenpcs.layers.input.exp_family.binomial import BinomialLayer
-from tenpcs.layers.input.exp_family.normal import NormalLayer
+from tenpcs.layers.input.categorical import CategoricalLayer
 from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
-# from tensorized_circuit import TensorizedPC
 from tenpcs.models import TensorizedPC
 
 
@@ -53,7 +50,6 @@ parser.add_argument("--input-sharing",   type=str,   default="f",        help="i
 parser.add_argument("--inner-sharing",   type=str,   default="c",        help="input sharing: either 'none', 'c', 'f'")
 parser.add_argument("--ff-dim",          type=int,   default=None,       help="fourier features output dim")
 parser.add_argument("--sigma",           type=float, default=1.0,        help="sigma fourier features")
-parser.add_argument("--input-layer",     type=str,   default="cat",      help="input type: either 'cat' or 'bin'")
 parser.add_argument("--ycc",             type=str,   default="none",     help="either 'none', 'lossless', 'lossy'")
 parser.set_defaults(learn_ff=False)
 parser.add_argument('-ff',         dest='learn_ff',            action='store_true')
@@ -73,7 +69,6 @@ print('\n')
 
 dataset_str = args.dataset + ('' if args.split is None else ('_' + args.split))
 INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer}
-INPUT_LAYERS = {"cat": CategoricalLayer, "bin": BinomialLayer, "normal": NormalLayer}
 device = f"cuda:{args.gpu}" if torch.cuda.is_available() and args.gpu is not None else "cpu"
 
 ##########################################################################
@@ -110,7 +105,7 @@ num_channels = train[0].size(-1)
 qpc = TensorizedPC.from_region_graph(
     rg=rg,
     layer_cls=INNER_LAYERS[args.inner_layer],
-    efamily_cls=INPUT_LAYERS[args.input_layer],
+    efamily_cls=CategoricalLayer,
     efamily_kwargs={'num_categories': num_categories},
     num_inner_units=args.k,
     num_input_units=args.k,
@@ -187,8 +182,7 @@ writer.add_hparams(
     },
     hparam_domain_discrete={
         'rg':               ['QG', 'QT'],
-        'inner_layer':      list(INNER_LAYERS.keys()),
-        'input_layer':      list(INPUT_LAYERS.keys())
+        'inner_layer':      list(INNER_LAYERS.keys())
     },
 )
 writer.close()
