@@ -5,8 +5,7 @@ import random
 import torch
 import os
 
-from tensorized_circuit import TensorizedPC
-
+from tenpcs.models import TensorizedPC
 from tenpcs.models.functional import integrate
 from tenpcs.layers.sum_product import CollapsedCPLayer
 from tenpcs.layers.sum import SumLayer
