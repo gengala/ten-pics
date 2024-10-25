@@ -168,12 +168,12 @@ training_pic(
 ################################ testing & logging ################################
 ###################################################################################
 
+print('(PIC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
 if not args.delete_model:  # todo
     pic = torch.load(model_dir).eval()
     pic.parameterize_qpc(qpc=qpc, z_quad=z_quad, w_quad=w_quad)
     print('norm const', integrate(qpc)(None).item())
     print(dataset_str)
-    print('(PIC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
     results = test_pc(qpc, train_loader, valid_loader, test_loader)
     writer.add_hparams(
         hparam_dict=vars(args),

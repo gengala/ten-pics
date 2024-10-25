@@ -142,10 +142,10 @@ training_pc(
 ################################ testing ################################
 #########################################################################
 
+print('(PC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
 if not args.delete_model:  # todo
     pc: TensorizedPC = torch.load(model_dir)
     print(dataset_str)
-    print('(PC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
     results = test_pc(pc, train_loader, valid_loader, test_loader)
     writer.add_hparams(
         hparam_dict=vars(args),
