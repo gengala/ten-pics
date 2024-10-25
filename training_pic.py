@@ -168,29 +168,29 @@ training_pic(
 ################################ testing & logging ################################
 ###################################################################################
 
-pic = torch.load(model_dir).eval()
-pic.parameterize_qpc(qpc=qpc, z_quad=z_quad, w_quad=w_quad)
-print('norm const', integrate(qpc)(None).item())
-print(dataset_str)
-print('(PIC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
-results = test_pc(qpc, train_loader, valid_loader, test_loader)
-
-writer.add_hparams(
-    hparam_dict=vars(args),
-    metric_dict={
-        'best/train/ll':    results['train_ll'],
-        'best/train/bpd':   results['train_bpd'],
-        'best/valid/ll':    results['valid_ll'],
-        'best/valid/bpd':   results['valid_bpd'],
-        'best/test/ll':     results['test_ll'],
-        'best/test/bpd':    results['test_bpd'],
-    },
-    hparam_domain_discrete={
-        'rg':               ['QG', 'QT'],
-        'inner_layer':      list(INNER_LAYERS.keys())
-    },
-)
-writer.close()
+if not args.delete_model:  # todo
+    pic = torch.load(model_dir).eval()
+    pic.parameterize_qpc(qpc=qpc, z_quad=z_quad, w_quad=w_quad)
+    print('norm const', integrate(qpc)(None).item())
+    print(dataset_str)
+    print('(PIC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
+    results = test_pc(qpc, train_loader, valid_loader, test_loader)
+    writer.add_hparams(
+        hparam_dict=vars(args),
+        metric_dict={
+            'best/train/ll':    results['train_ll'],
+            'best/train/bpd':   results['train_bpd'],
+            'best/valid/ll':    results['valid_ll'],
+            'best/valid/bpd':   results['valid_bpd'],
+            'best/test/ll':     results['test_ll'],
+            'best/test/bpd':    results['test_bpd'],
+        },
+        hparam_domain_discrete={
+            'rg':               ['QG', 'QT'],
+            'inner_layer':      list(INNER_LAYERS.keys())
+        },
+    )
+    writer.close()
 
 if args.delete_model:
     os.remove(model_dir)

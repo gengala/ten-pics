@@ -142,27 +142,27 @@ training_pc(
 ################################ testing ################################
 #########################################################################
 
-pc: TensorizedPC = torch.load(model_dir)
-print(dataset_str)
-print('(PC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
-results = test_pc(pc, train_loader, valid_loader, test_loader)
-
-writer.add_hparams(
-    hparam_dict=vars(args),
-    metric_dict={
-        'best/train/ll':    results['train_ll'],
-        'best/train/bpd':   results['train_bpd'],
-        'best/valid/ll':    results['valid_ll'],
-        'best/valid/bpd':   results['valid_bpd'],
-        'best/test/ll':     results['test_ll'],
-        'best/test/bpd':    results['test_bpd'],
-    },
-    hparam_domain_discrete={
-        'rg':               ['QG', 'QT'],
-        'inner_layer':      list(INNER_LAYERS.keys())
-    },
-)
-writer.close()
+if not args.delete_model:  # todo
+    pc: TensorizedPC = torch.load(model_dir)
+    print(dataset_str)
+    print('(PC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
+    results = test_pc(pc, train_loader, valid_loader, test_loader)
+    writer.add_hparams(
+        hparam_dict=vars(args),
+        metric_dict={
+            'best/train/ll':    results['train_ll'],
+            'best/train/bpd':   results['train_bpd'],
+            'best/valid/ll':    results['valid_ll'],
+            'best/valid/bpd':   results['valid_bpd'],
+            'best/test/ll':     results['test_ll'],
+            'best/test/bpd':    results['test_bpd'],
+        },
+        hparam_domain_discrete={
+            'rg':               ['QG', 'QT'],
+            'inner_layer':      list(INNER_LAYERS.keys())
+        },
+    )
+    writer.close()
 
 if args.delete_model:
     os.remove(model_dir)
