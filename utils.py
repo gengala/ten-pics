@@ -1,14 +1,13 @@
+from tenpcs.models import TensorizedPC
+from tenpcs.models.functional import integrate
+from tenpcs.layers.sum import SumLayer
+
 from torch.utils.data import DataLoader
 import numpy as np
 import datetime
 import random
 import torch
 import os
-
-from tenpcs.models import TensorizedPC
-from tenpcs.models.functional import integrate
-from tenpcs.layers.sum_product import CollapsedCPLayer
-from tenpcs.layers.sum import SumLayer
 
 
 def init_random_seeds(seed: int = 42):

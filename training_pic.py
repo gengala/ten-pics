@@ -1,10 +1,19 @@
+import sys
+import os
+sys.path.append(os.path.abspath('../ten-pcs'))
+from tenpcs.models.functional import integrate
+from tenpcs.layers.input.categorical import CategoricalLayer
+from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
+from tenpcs.region_graph import QuadTree, QuadGraph
+from tenpcs.models import TensorizedPC
+
+
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 import numpy as np
 import functools
 import argparse
 import torch
-import git
 import os
 
 print = functools.partial(print, flush=True)
@@ -13,13 +22,6 @@ from trainers import training_pic, test_pc
 from pic import PIC, zw_quadrature, pc2integral_group_args
 from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, param_to_buffer, freeze_mixing_layers
 from data import datasets
-
-
-from tenpcs.models.functional import integrate
-from tenpcs.layers.input.categorical import CategoricalLayer
-from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
-from tenpcs.region_graph import QuadTree, QuadGraph
-from tenpcs.models import TensorizedPC
 
 
 parser = argparse.ArgumentParser()
@@ -57,13 +59,12 @@ parser.add_argument('-no-ff',      dest='learn_ff',            action='store_fal
 parser.set_defaults(bias=True)
 parser.add_argument('-bias',       dest='bias',                action='store_true')
 parser.add_argument('-no-bias',    dest='bias',                action='store_false')
-parser.set_defaults(delete_model=False)
-parser.add_argument('-dm', dest='delete_model', action='store_true', help='delete model after testing')
+parser.set_defaults(benchmark_run=False)
+parser.add_argument('-br', dest='benchmark_run', action='store_true', help='delete model after testing')
 args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
 print('\n\n\n')
-args.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 args.time_stamp = time_stamp = get_date_time_str()
 for key, value in vars(args).items():
     print(f"{key}: {value}")
@@ -145,6 +146,7 @@ optimizer = torch.optim.Adam(pic.parameters(), lr=args.lr, weight_decay=args.wei
 scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=args.t0, T_mult=1, eta_min=args.eta_min)
 z_quad, w_quad = zw_quadrature('trapezoidal', nip=args.k, a=args.a, b=args.b, device=device)
 
+max_train_steps = 505 if args.benchmark_run else int(len(train) // args.batch_size * args.max_num_epochs)
 training_pic(
     pic=pic,
     qpc=qpc,
@@ -153,7 +155,7 @@ training_pic(
     optimizer=optimizer,
     scheduler=scheduler,
     loss_reduction=args.loss_reduction,
-    max_train_steps=505 if args.delete_model else int(len(train) // args.batch_size * args.max_num_epochs),  # todo delete if, also in training_pic
+    max_train_steps=max_train_steps,
     patience=args.patience,
     min_delta=args.min_delta,
     train_loader=train_loader,
@@ -169,7 +171,9 @@ training_pic(
 ###################################################################################
 
 print('(PIC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
-if not args.delete_model:  # todo
+if args.benchmark_run:
+    os.remove(model_dir)
+else:
     pic = torch.load(model_dir).eval()
     pic.parameterize_qpc(qpc=qpc, z_quad=z_quad, w_quad=w_quad)
     print('norm const', integrate(qpc)(None).item())
@@ -191,6 +195,3 @@ if not args.delete_model:  # todo
         },
     )
     writer.close()
-
-if args.delete_model:
-    os.remove(model_dir)

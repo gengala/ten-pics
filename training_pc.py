@@ -1,10 +1,18 @@
+import sys
+import os
+sys.path.append(os.path.abspath('../ten-pcs'))
+from tenpcs.layers.input.categorical import CategoricalLayer
+from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
+from tenpcs.region_graph import QuadTree, QuadGraph
+from tenpcs.models import TensorizedPC
+
+
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 import functools
 import numpy as np
 import argparse
 import torch
-import git
 import os
 
 print = functools.partial(print, flush=True)
@@ -13,13 +21,6 @@ print = functools.partial(print, flush=True)
 from trainers import training_pc, test_pc
 from utils import init_random_seeds, get_date_time_str, count_trainable_parameters, freeze_mixing_layers
 from data import datasets
-
-
-from tenpcs.layers.input.categorical import CategoricalLayer
-from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
-from tenpcs.region_graph import QuadTree, QuadGraph
-from tenpcs.models import TensorizedPC
-from tensor_ring import TRLayer  # todo
 
 
 parser = argparse.ArgumentParser()
@@ -50,20 +51,19 @@ parser.add_argument('-no-fml',     dest='freeze_mixing_layers',   action='store_
 parser.set_defaults(shared_input_layer=False)
 parser.add_argument('-sil',        dest='shared_input_layer',   action='store_true',        help='multi_head')
 parser.add_argument('-no-sil',     dest='shared_input_layer',   action='store_false',       help='multi_head')
-parser.set_defaults(delete_model=False)
-parser.add_argument('-dm', dest='delete_model', action='store_true', help='delete model after testing')
+parser.set_defaults(benchmark_run=False)
+parser.add_argument('-br', dest='benchmark_run', action='store_true', help='delete model after testing')
 args = parser.parse_args()
 init_random_seeds(seed=args.seed)
 
 print('\n\n\n')
-args.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 args.time_stamp = time_stamp = get_date_time_str()
 for key, value in vars(args).items():
     print(f"{key}: {value}")
 print('\n')
 
 dataset_str = args.dataset + ('' if args.split is None else ('_' + args.split))
-INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer, "tr": TRLayer}  # todo
+INNER_LAYERS = {"tucker": TuckerLayer, "cp": CollapsedCPLayer}
 device = f"cuda:{args.gpu}" if torch.cuda.is_available() and args.gpu is not None else "cpu"
 
 ##########################################################################
@@ -122,12 +122,13 @@ optimizer = torch.optim.Adam([
     {'params': pc.inner_layers.parameters(), 'weight_decay': args.weight_decay}], lr=args.lr)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=args.t0, T_mult=1, eta_min=args.eta_min)
 
+max_train_steps = 505 if args.benchmark_run else int(len(train) // args.batch_size * args.max_num_epochs)
 training_pc(
     pc=pc,
     optimizer=optimizer,
     scheduler=scheduler,
     loss_reduction=args.loss_reduction,
-    max_train_steps=505 if args.delete_model else int(len(train) // args.batch_size * args.max_num_epochs),  # todo delete if, also in training_pic
+    max_train_steps=max_train_steps,
     patience=args.patience,
     min_delta=args.min_delta,
     train_loader=train_loader,
@@ -143,7 +144,9 @@ training_pc(
 #########################################################################
 
 print('(PC) %s-%s-%d-%s' % (args.rg, args.inner_layer, args.k, args.ycc))
-if not args.delete_model:  # todo
+if args.benchmark_run:
+    os.remove(model_dir)
+else:
     pc: TensorizedPC = torch.load(model_dir)
     print(dataset_str)
     results = test_pc(pc, train_loader, valid_loader, test_loader)
@@ -163,6 +166,3 @@ if not args.delete_model:  # todo
         },
     )
     writer.close()
-
-if args.delete_model:
-    os.remove(model_dir)

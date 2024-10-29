@@ -1,4 +1,6 @@
-from typing import Optional
+from tenpcs.models.functional import integrate
+from tenpcs.layers.sum_product import CollapsedCPLayer
+
 import numpy as np
 import functools
 import torch
@@ -135,9 +137,6 @@ def training_pc(
     writer,
     model_dir: str
 ):
-    from tenpcs.models.functional import integrate
-    from tenpcs.layers.sum_product import CollapsedCPLayer
-
     assert loss_reduction in ['mean', 'sum']
     dataset_str = model_dir.split(os.sep)[-3]
     train_step = 1
@@ -172,9 +171,6 @@ def training_pc(
             for layer in pc.inner_layers:
                 if isinstance(layer, CollapsedCPLayer):
                     layer.params_in().data.clamp_(min=sqrt_eps)
-                elif "TR" in str(type(layer)) and layer.num_input_units == layer.num_output_units:  # todo
-                    layer.fold_core().data.clamp_(min=sqrt_eps)
-                    layer.K_cores().data.clamp_(min=sqrt_eps)
                 else:  # SumLayer, TuckerLayer
                     layer.params().data.clamp_(min=sqrt_eps)
 

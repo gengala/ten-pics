@@ -1,11 +1,11 @@
+from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
+from tenpcs.layers.sum import SumLayer
+
 from typing import Optional, List, Tuple
 from dataclasses import dataclass
 import torch.nn as nn
 import numpy as np
 import torch
-
-from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
-from tenpcs.layers.sum import SumLayer
 
 
 def zw_quadrature(
