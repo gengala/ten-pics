@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.append(os.path.abspath('../ten-pcs'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ten-pcs'))
 from tenpcs.layers.input.categorical import CategoricalLayer
 from tenpcs.layers.sum_product import CollapsedCPLayer, TuckerLayer
 from tenpcs.region_graph import QuadTree, QuadGraph
