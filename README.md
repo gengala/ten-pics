@@ -1,6 +1,10 @@
 # Scaling Continuous Latent Variable Models as Probabilistic Integral Circuits
 
 This repository contains the code for reproducing the experiments of the paper [Scaling Continuous Latent Variable Models as Probabilistic Integral Circuits](https://openreview.net/forum?id=Ke40kfOT2E), which has been accepted at NeurIPS 2024 as a spotlight.
+The repository can be cloned with
+
+    git clone --recurse-submodules https://github.com/gengala/ten-pics
+
 
 Our implementation is also available in [cirkit](https://github.com/april-tools/cirkit), which also provides an introductory [notebook](https://github.com/april-tools/cirkit/blob/main/notebooks/learning-a-circuit-with-pic.ipynb).
 
