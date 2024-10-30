@@ -66,14 +66,14 @@ def training_pic(
     best_test_ll = - np.infty
     patience_counter = patience
     batch_time_log = []
-    tik_train = tik_train_cycle = time.time()
+    tik_train = tik_train_cycle = time.perf_counter()
 
     print(f'Training for at most {max_train_steps} steps..\n')
     while train_step < max_train_steps + 1:
 
         for batch in train_loader:
             batch = batch.to(device)
-            tik_batch = time.time()
+            tik_batch = time.perf_counter()
             train_step += 1
             pic.parameterize_qpc(qpc=qpc, z_quad=z_quad, w_quad=w_quad)
             ll = qpc(batch).mean() if loss_reduction == 'mean' else qpc(batch).sum()
@@ -85,7 +85,7 @@ def training_pic(
             (-ll).backward()
             optimizer.step()
             scheduler.step()
-            batch_time_log.append((time.time() - tik_batch) * 1000)
+            batch_time_log.append((time.perf_counter() - tik_batch) * 1000)
 
             if train_step % valid_freq == 0:
                 with torch.no_grad():
@@ -110,15 +110,15 @@ def training_pic(
                 log_string(
                     pc=qpc, train_step=train_step, dataset_str=dataset_str,
                     curr_train_ll=train_ll, best_valid_ll=best_valid_ll, best_test_ll=best_test_ll,
-                    train_cycle_time=time.time() - tik_train_cycle, avg_batch_time=np.mean(batch_time_log),
+                    train_cycle_time=time.perf_counter() - tik_train_cycle, avg_batch_time=np.mean(batch_time_log),
                     lr=optimizer.param_groups[0]['lr'], device=device)
-                tik_train_cycle = time.time()
+                tik_train_cycle = time.perf_counter()
                 batch_time_log.clear()
                 writer.flush()
             if train_step > max_train_steps + 1:
                 break
 
-    train_time = time.time() - tik_train
+    train_time = time.perf_counter() - tik_train
     print(f'Overall training time: {train_time:.2f}s')
 
 
@@ -144,7 +144,7 @@ def training_pc(
     best_test_ll = - np.infty
     patience_counter = patience
     batch_time_log = []
-    tik_train = tik_train_cycle = time.time()
+    tik_train = tik_train_cycle = time.perf_counter()
 
     device = pc.input_layer.params.param.device
     pc_pf = integrate(pc)
@@ -155,7 +155,7 @@ def training_pc(
 
         for batch in train_loader:
             batch = batch.to(device)
-            tik_batch = time.time()
+            tik_batch = time.perf_counter()
             train_step += 1
             ll = (pc(batch) - pc_pf(None)).mean() if loss_reduction == 'mean' else (pc(batch) - pc_pf(None)).sum()
             if np.isnan(ll.item()):
@@ -166,7 +166,7 @@ def training_pc(
             (-ll).backward()
             optimizer.step()
             scheduler.step()
-            batch_time_log.append((time.time() - tik_batch) * 1000)
+            batch_time_log.append((time.perf_counter() - tik_batch) * 1000)
 
             for layer in pc.inner_layers:
                 if isinstance(layer, CollapsedCPLayer):
@@ -195,15 +195,15 @@ def training_pc(
                 log_string(
                     pc=pc, train_step=train_step, dataset_str=dataset_str,
                     curr_train_ll=train_ll, best_valid_ll=best_valid_ll, best_test_ll=best_test_ll,
-                    train_cycle_time=time.time() - tik_train_cycle, avg_batch_time=np.mean(batch_time_log),
+                    train_cycle_time=time.perf_counter() - tik_train_cycle, avg_batch_time=np.mean(batch_time_log),
                     lr=optimizer.param_groups[0]['lr'], device=device)
-                tik_train_cycle = time.time()
+                tik_train_cycle = time.perf_counter()
                 batch_time_log.clear()
                 writer.flush()
             if train_step > max_train_steps + 1:
                 break
 
-    train_time = time.time() - tik_train
+    train_time = time.perf_counter() - tik_train
     print(f'Overall training time: {train_time:.2f}s')
 
 
